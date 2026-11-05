@@ -135,7 +135,7 @@ export const achievements = [
   },
   {
     title: "Rise In — “New Moon to Full” program",
-    description: "Completed all 6 levels of Rise In's “New Moon to Full” program on Midnight.",
+    description: "Completed Levels 1–4 of Rise In's 6-level “New Moon to Full” builder program on Midnight.",
   },
   {
     title: "Shipped CertiProof",
