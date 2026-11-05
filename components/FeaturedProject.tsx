@@ -16,7 +16,12 @@ import { ArrowUpRightIcon, CheckIcon, GithubIcon } from "./ui/Icons";
 export default function FeaturedProject() {
   return (
     <section id="projects" aria-labelledby="projects-heading" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 md:py-28">
-      <SectionHeading id="projects-heading" eyebrow="Projects" title="Featured work." />
+      <SectionHeading
+        id="projects-heading"
+        eyebrow="Projects"
+        title="Selected Work"
+        subtitle="A closer look at what I've built: the problem, the approach, and the measurable result."
+      />
 
       <Reveal>
         <article
