@@ -34,7 +34,7 @@ export type Project = {
 export const site = {
   // Change this to your real domain once deployed (used for Open Graph / canonical URLs).
   // Can also be overridden with the NEXT_PUBLIC_SITE_URL environment variable.
-  url: "https://sayanmanna.vercel.app",
+  url: "https://sayanmanna-portfolio.vercel.app",
   title: "Sayan Manna | Full-Stack & AI/ML Developer",
   description:
     "Portfolio of Sayan Manna — B.Tech CSE (AI & ML) student in Kolkata building full-stack web apps, AI/ML projects and zero-knowledge apps on the Midnight blockchain.",
