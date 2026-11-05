@@ -129,3 +129,9 @@ export const DownloadIcon = ({ className = "h-4 w-4" }: IconProps) => (
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </svg>
 );
+
+export const ChevronDownIcon = ({ className = "h-4 w-4" }: IconProps) => (
+  <svg {...base} className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
