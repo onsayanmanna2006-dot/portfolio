@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Palette (single source of truth, also used by tailwind.config.ts) ---------- */
+:root {
+  --charcoal: #171717;
+  --forest: #06110c;
+  --crimson: #a31c1b;
+  --crimson-bright: #f05252; /* text-safe crimson tint (≈5:1 on charcoal) */
+  --ink: #ededed;
+  --muted: #a3a3a3;
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--charcoal);
+}
+
+body {
+  background: var(--charcoal);
+  overflow-x: clip; /* safety net against decorative glows causing sideways scroll */
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Offset anchor jumps so the sticky navbar doesn't cover headings */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
+::selection {
+  background: rgba(163, 28, 27, 0.6);
+  color: #fff;
+}
+
+/* Visible, on-brand keyboard focus */
+:focus-visible {
+  outline: 2px solid var(--crimson-bright);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@layer components {
+  /* Glassmorphism card: translucent forest tint, thin border, glow on hover */
+  .glass {
+    @apply relative rounded-2xl border border-white/10 bg-forest/50 backdrop-blur-xl transition-all duration-300;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  }
+  .glass-hover:hover {
+    @apply border-crimson/40 shadow-glow;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300;
+  }
+  .btn-primary {
+    @apply btn bg-crimson text-white hover:bg-crimson-dark hover:shadow-glow;
+  }
+  .btn-outline {
+    @apply btn border border-white/20 text-ink hover:border-crimson hover:text-white hover:bg-crimson/10;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-ink/90;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-ink via-ink to-crimson-bright bg-clip-text text-transparent;
+  }
+}
+
+/* ---------- Reduced motion: kill CSS animation + smooth scroll ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
