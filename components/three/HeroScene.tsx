@@ -14,7 +14,7 @@
  */
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Float, PointMaterial, Points } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
@@ -130,42 +130,128 @@ function CrystalLayout({ anchor, children }: { anchor: Anchor | null; children: 
   );
 }
 
-/* ---------- Star field covering the whole hero ---------- */
+/* ---------- Realistic star field covering the whole hero ---------- */
+
+/*
+ * Custom shader so each star gets its own size, brightness, colour and twinkle.
+ * Sizes are in screen pixels (not world units) so stars stay pin-point sharp,
+ * like real ones, instead of growing into big dots when close to the camera.
+ */
+const starVertex = /* glsl */ `
+  attribute float aSize;
+  attribute float aBright;
+  attribute float aPhase;
+  attribute vec3 aColor;
+  uniform float uTime;
+  uniform float uPixelRatio;
+  varying float vAlpha;
+  varying vec3 vColor;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * mv;
+    // Gentle, per-star twinkle (different speed + offset for each star)
+    float twinkle = 0.7 + 0.3 * sin(uTime * (0.5 + aPhase * 1.8) + aPhase * 6.2831);
+    vAlpha = aBright * twinkle;
+    vColor = aColor;
+    gl_PointSize = aSize * uPixelRatio;
+  }
+`;
+
+const starFragment = /* glsl */ `
+  varying float vAlpha;
+  varying vec3 vColor;
+  void main() {
+    // Soft round point with a bright centre (no square edges)
+    float d = length(gl_PointCoord - 0.5);
+    float a = smoothstep(0.5, 0.0, d);
+    a *= a;
+    gl_FragColor = vec4(vColor, a * vAlpha);
+  }
+`;
+
 function Stars({ count, animate }: { count: number; animate: boolean }) {
   const ref = useRef<THREE.Points>(null);
-  const { size, camera } = useThree();
+  const { size, camera, gl } = useThree();
   const cam = camera as THREE.PerspectiveCamera;
   const aspect = Math.round((size.width / size.height) * 10) / 10; // rounded → only rebuild on real resizes
 
-  // Fill the camera's view at every depth (plus a margin for parallax)
-  const positions = useMemo(() => {
+  const { positions, sizes, brights, phases, colors } = useMemo(() => {
     const tan = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
-    const arr = new Float32Array(count * 3);
+    const positions = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    const brights = new Float32Array(count);
+    const phases = new Float32Array(count);
+    const colors = new Float32Array(count * 3);
+    const white = new THREE.Color("#ffffff");
+    const blue = new THREE.Color("#cfe0ff");
+    const warm = new THREE.Color("#ffe6cc");
+
     for (let i = 0; i < count; i++) {
-      const z = -12 + Math.random() * 13; // -12 … 1
+      // Fill the camera's view at every depth, with a margin for parallax
+      const z = -12 + Math.random() * 13;
       const halfH = (cam.position.z - z) * tan * 1.15;
-      const halfW = halfH * aspect;
-      arr[i * 3] = (Math.random() * 2 - 1) * halfW;
-      arr[i * 3 + 1] = (Math.random() * 2 - 1) * halfH;
-      arr[i * 3 + 2] = z;
+      positions[i * 3] = (Math.random() * 2 - 1) * halfH * aspect;
+      positions[i * 3 + 1] = (Math.random() * 2 - 1) * halfH;
+      positions[i * 3 + 2] = z;
+
+      // Like a real sky: most stars tiny & faint, a few medium, very few bright
+      const r = Math.random();
+      if (r < 0.75) {
+        sizes[i] = 1.0 + Math.random() * 0.8; // 1.0–1.8 px
+        brights[i] = 0.4 + Math.random() * 0.35;
+      } else if (r < 0.96) {
+        sizes[i] = 1.6 + Math.random() * 0.9; // 1.6–2.5 px
+        brights[i] = 0.7 + Math.random() * 0.3;
+      } else {
+        sizes[i] = 2.5 + Math.random() * 1.3; // 2.5–3.8 px
+        brights[i] = 0.85 + Math.random() * 0.15;
+      }
+      phases[i] = Math.random();
+
+      // Mostly white, with a hint of blue or warm tint on some stars
+      const c = Math.random();
+      const col = c < 0.15 ? blue : c < 0.25 ? warm : white;
+      colors[i * 3] = col.r;
+      colors[i * 3 + 1] = col.g;
+      colors[i * 3 + 2] = col.b;
     }
-    return arr;
+    return { positions, sizes, brights, phases, colors };
   }, [count, aspect, cam.fov, cam.position.z]);
+
+  const uniforms = useMemo(
+    () => ({ uTime: { value: 0 }, uPixelRatio: { value: gl.getPixelRatio() } }),
+    [gl]
+  );
 
   useFrame((state, delta) => {
     if (!ref.current) return;
+    if (animate) uniforms.uTime.value = state.clock.elapsedTime;
+    uniforms.uPixelRatio.value = state.gl.getPixelRatio();
     const px = THREE.MathUtils.clamp(state.pointer.x, -1, 1);
     const py = THREE.MathUtils.clamp(state.pointer.y, -1, 1);
-    // Gentle parallax opposite to the pointer + a slow sway
-    ref.current.position.x = THREE.MathUtils.damp(ref.current.position.x, -px * 0.35, 1.5, delta);
-    ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, -py * 0.25, 1.5, delta);
-    if (animate) ref.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.05;
+    // Subtle parallax opposite to the pointer (far stars move less thanks to perspective)
+    ref.current.position.x = THREE.MathUtils.damp(ref.current.position.x, -px * 0.3, 1.5, delta);
+    ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, -py * 0.2, 1.5, delta);
   });
 
   return (
-    <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color={COLORS.ink} size={0.045} sizeAttenuation depthWrite={false} opacity={0.7} />
-    </Points>
+    <points ref={ref} frustumCulled={false} key={positions.length + aspect}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} />
+        <bufferAttribute attach="attributes-aBright" args={[brights, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[phases, 1]} />
+        <bufferAttribute attach="attributes-aColor" args={[colors, 3]} />
+      </bufferGeometry>
+      <shaderMaterial
+        vertexShader={starVertex}
+        fragmentShader={starFragment}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
   );
 }
 
@@ -196,7 +282,7 @@ export default function HeroScene({
       aria-hidden="true"
     >
       <ambientLight intensity={0.35} />
-      <Stars count={lite ? 600 : 2200} animate={!reducedMotion} />
+      <Stars count={lite ? 900 : 2600} animate={!reducedMotion} />
 
       {/* Lights live inside the layout group so they follow the crystal */}
       <CrystalLayout anchor={anchor}>
