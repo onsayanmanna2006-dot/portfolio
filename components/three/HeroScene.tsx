@@ -34,13 +34,16 @@ function Crystal({ animate }: { animate: boolean }) {
 
   useFrame((state, delta) => {
     if (!group.current) return;
-    const { x, y } = state.pointer; // -1..1, tracked across the whole page
+    // The pointer is tracked page-wide, so it goes far outside -1..1 when the mouse
+    // is away from the canvas. Clamp it so the crystal never tilts out of frame.
+    const x = THREE.MathUtils.clamp(state.pointer.x, -1, 1);
+    const y = THREE.MathUtils.clamp(state.pointer.y, -1, 1);
 
     // Idle spin + ease toward the pointer
     if (animate) group.current.rotation.y += delta * 0.18;
     group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -y * 0.45, 3, delta);
     group.current.rotation.z = THREE.MathUtils.damp(group.current.rotation.z, x * 0.25, 3, delta);
-    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, x * 0.25, 2, delta);
+    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, x * 0.15, 2, delta);
 
     // Pulsing inner core
     if (core.current && animate) {
@@ -119,7 +122,7 @@ function Particles({ count, animate }: { count: number; animate: boolean }) {
     if (!ref.current) return;
     if (animate) ref.current.rotation.y -= delta * 0.03;
     // Gentle parallax opposite to the crystal
-    ref.current.rotation.x = THREE.MathUtils.damp(ref.current.rotation.x, state.pointer.y * 0.15, 1.5, delta);
+    ref.current.rotation.x = THREE.MathUtils.damp(ref.current.rotation.x, THREE.MathUtils.clamp(state.pointer.y, -1, 1) * 0.15, 1.5, delta);
   });
 
   return (
@@ -144,7 +147,7 @@ export default function HeroScene({
 
   return (
     <Canvas
-      camera={{ position: [0, 0, 7], fov: 45 }}
+      camera={{ position: [0, 0, 7.6], fov: 45 }}
       dpr={lite ? [1, 1.25] : [1, 2]}
       gl={{ antialias: !lite, alpha: true, powerPreference: "high-performance" }}
       frameloop={frameloop}
