@@ -129,6 +129,11 @@ export const moreProjects: Pick<Project, "name" | "tagline" | "tech" | "liveUrl"
 
 export const achievements = [
   {
+    title: "Won 60 USDT — Rise In Midnight Challenge",
+    description:
+      "Selected as a winner of Rise In's “New Moon to Full” September Challenge (Level 4 – Waxing Gibbous) for building CertiProof, a zero-knowledge certificate verifier on Midnight.",
+  },
+  {
     title: "Rise In — “New Moon to Full” program",
     description: "Completed all 6 levels of Rise In's “New Moon to Full” program on Midnight.",
   },
