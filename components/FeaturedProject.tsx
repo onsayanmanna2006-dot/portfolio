@@ -2,136 +2,130 @@ import { featuredProject as p, moreProjects } from "@/data/portfolio";
 import Reveal from "./ui/Reveal";
 import SectionHeading from "./ui/SectionHeading";
 import Counter from "./ui/Counter";
-import { ArrowUpRightIcon, CheckIcon, GithubIcon, ShieldIcon, SparkIcon } from "./ui/Icons";
+import { ArrowUpRightIcon, CheckIcon, GithubIcon } from "./ui/Icons";
 
 /**
- * Featured case study: Problem → Solution → Impact,
- * with a big animated stat, what I learned, tech stack and links.
+ * Compact featured case study.
+ *
+ *  ┌ header: name + tagline ─────────────── [Live Demo] [GitHub] ┐
+ *  ├ 01 Problem      │ 02 Solution        │ 03 Impact (stat)     ┤
+ *  └ What I learned                       │ Tech stack           ┘
+ *
  * Followed by any extra projects, or a "coming soon" placeholder.
  */
 export default function FeaturedProject() {
   return (
-    <section id="projects" aria-labelledby="projects-heading" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 md:py-32">
-      <SectionHeading
-        id="projects-heading"
-        eyebrow="Featured Project"
-        title={p.name}
-        subtitle={p.tagline}
-      />
+    <section id="projects" aria-labelledby="projects-heading" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 md:py-28">
+      <SectionHeading id="projects-heading" eyebrow="Projects" title="Featured work." />
 
       <Reveal>
         <article
-          aria-label={`${p.name} case study`}
-          className="glass group overflow-hidden border-white/10 bg-gradient-to-br from-forest/80 via-forest/50 to-charcoal/60"
+          aria-labelledby="certiproof-title"
+          className="glass overflow-hidden bg-gradient-to-br from-forest/80 via-forest/50 to-charcoal/60"
         >
           {/* Decorative glow */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-crimson/20 blur-[100px] transition-opacity duration-500 group-hover:opacity-100 md:opacity-70"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-crimson/15 blur-[90px]"
           />
 
-          <div className="relative grid gap-px bg-white/5 lg:grid-cols-[1fr_340px]">
-            {/* ---------- Left: story ---------- */}
-            <div className="space-y-10 bg-forest/60 p-7 sm:p-10">
-              {/* Problem */}
-              <div>
-                <StepLabel n="01" label="Problem" />
-                <p className="mt-3 text-lg leading-relaxed text-ink/90">{p.problem}</p>
-              </div>
+          {/* ---------- Header ---------- */}
+          <header className="relative flex flex-col gap-5 border-b border-white/10 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-crimson-bright">Case study</p>
+              <h3 id="certiproof-title" className="mt-1.5 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+                {p.name}
+              </h3>
+              <p className="mt-1 text-sm text-muted sm:text-base">{p.tagline}</p>
+            </div>
+            <div className="flex shrink-0 gap-2.5">
+              {p.liveUrl && (
+                <a href={p.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary px-5 py-2.5">
+                  Live Demo <ArrowUpRightIcon />
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              )}
+              {p.githubUrl && (
+                <a href={p.githubUrl} target="_blank" rel="noopener noreferrer" className="btn-outline px-5 py-2.5">
+                  <GithubIcon className="h-4 w-4" /> GitHub
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              )}
+            </div>
+          </header>
 
-              {/* Solution */}
-              <div>
-                <StepLabel n="02" label="Solution" />
-                <p className="mt-3 text-lg leading-relaxed text-ink/90">{p.solution.intro}</p>
-                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {p.solution.points.map((pt) => (
-                    <li key={pt} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-crimson text-white">
-                        <CheckIcon className="h-3 w-3" />
-                      </span>
-                      <span className="text-sm leading-relaxed text-ink/90">{pt}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Impact */}
-              <div>
-                <StepLabel n="03" label="Impact" />
-                <p className="mt-3 text-lg leading-relaxed text-ink/90">{p.impact.text}</p>
-              </div>
-
-              {/* What I learned */}
-              <div className="rounded-2xl border border-white/10 bg-charcoal/40 p-6">
-                <h3 className="flex items-center gap-2 font-heading text-base font-semibold">
-                  <SparkIcon className="h-5 w-5 text-crimson-bright" />
-                  What I learned
-                </h3>
-                <ul className="mt-4 space-y-2.5">
-                  {p.learned.map((l) => (
-                    <li key={l} className="flex gap-3 text-sm leading-relaxed text-muted">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-crimson-bright" aria-hidden="true" />
-                      {l}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          {/* ---------- Problem → Solution → Impact ---------- */}
+          <div className="relative grid divide-y divide-white/10 md:grid-cols-3 md:divide-x md:divide-y-0">
+            <div className="p-6 sm:p-8">
+              <StepLabel n="01" label="Problem" />
+              <p className="mt-3 text-sm leading-relaxed text-ink/80">{p.problem}</p>
             </div>
 
-            {/* ---------- Right: stat + tech + links ---------- */}
-            <aside className="flex flex-col gap-8 bg-forest/40 p-7 sm:p-10">
-              <div className="rounded-2xl border border-crimson/30 bg-crimson/[0.07] p-6 text-center">
-                <ShieldIcon className="mx-auto h-7 w-7 text-crimson-bright" />
-                <p className="mt-3 font-heading text-7xl font-bold leading-none tracking-tighter text-crimson-bright md:text-8xl">
+            <div className="p-6 sm:p-8">
+              <StepLabel n="02" label="Solution" />
+              <p className="mt-3 text-sm leading-relaxed text-ink/80">{p.solution.intro}</p>
+              <ul className="mt-3 space-y-2">
+                {p.solution.points.map((pt) => (
+                  <li key={pt} className="flex items-start gap-2.5 text-sm leading-snug text-ink/80">
+                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-crimson-bright" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="p-6 sm:p-8">
+              <StepLabel n="03" label="Impact" />
+              <p className="mt-3 flex items-baseline gap-2">
+                <span className="font-heading text-5xl font-bold leading-none tracking-tighter text-crimson-bright">
                   <Counter to={p.impact.stat} suffix={p.impact.statSuffix} />
-                </p>
-                <p className="mt-2 font-heading text-lg font-semibold">{p.impact.statLabel}</p>
-                <p className="mt-1 text-xs text-muted">on Midnight Preprod · each checkable on-chain</p>
-              </div>
-
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Tech stack</h3>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {p.tech.map((t) => (
-                    <li key={t} className="chip">
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-auto flex flex-col gap-3">
-                {p.liveUrl && (
-                  <a href={p.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">
-                    Live Demo <ArrowUpRightIcon />
-                    <span className="sr-only">(opens in a new tab)</span>
-                  </a>
-                )}
-                {p.githubUrl && (
-                  <a href={p.githubUrl} target="_blank" rel="noopener noreferrer" className="btn-outline w-full">
-                    <GithubIcon className="h-4 w-4" /> GitHub
-                    <span className="sr-only">(opens in a new tab)</span>
-                  </a>
-                )}
-              </div>
-            </aside>
+                </span>
+                <span className="font-heading text-base font-semibold">{p.impact.statLabel}</span>
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-ink/80">{p.impact.text}</p>
+            </div>
           </div>
+
+          {/* ---------- Learned + tech ---------- */}
+          <footer className="relative grid gap-6 border-t border-white/10 bg-charcoal/30 p-6 sm:p-8 md:grid-cols-[1.6fr_1fr] md:gap-10">
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">What I learned</h4>
+              <ul className="mt-3 space-y-1.5">
+                {p.learned.map((l) => (
+                  <li key={l} className="flex gap-2.5 text-sm leading-relaxed text-ink/80">
+                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-crimson-bright" aria-hidden="true" />
+                    {l}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">Tech stack</h4>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {p.tech.map((t) => (
+                  <li key={t} className="chip">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </footer>
         </article>
       </Reveal>
 
       {/* ---------- More projects ---------- */}
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <div className="mt-6 grid gap-5 md:grid-cols-2">
         {moreProjects.map((mp, i) => (
           <Reveal key={mp.name} delay={i * 0.1}>
-            <article className="glass glass-hover h-full p-7">
-              <h3 className="font-heading text-xl font-semibold">{mp.name}</h3>
-              <p className="mt-2 text-muted">{mp.tagline}</p>
+            <article className="glass glass-hover h-full p-6">
+              <h3 className="font-heading text-lg font-semibold">{mp.name}</h3>
+              <p className="mt-1.5 text-sm text-muted">{mp.tagline}</p>
               <ul className="mt-4 flex flex-wrap gap-2">
                 {mp.tech.map((t) => (
                   <li key={t} className="chip">{t}</li>
                 ))}
               </ul>
-              <div className="mt-6 flex gap-4 text-sm font-semibold">
+              <div className="mt-5 flex gap-4 text-sm font-semibold">
                 {mp.liveUrl && (
                   <a href={mp.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-crimson-bright hover:underline">
                     Live <ArrowUpRightIcon />
@@ -148,16 +142,14 @@ export default function FeaturedProject() {
         ))}
 
         <Reveal delay={0.1} className={moreProjects.length % 2 === 0 ? "md:col-span-2" : ""}>
-          <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 p-10 text-center">
-            <div className="mb-4 flex gap-1.5" aria-hidden="true">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-crimson" />
-              <span className="h-2 w-2 animate-pulse rounded-full bg-crimson [animation-delay:200ms]" />
-              <span className="h-2 w-2 animate-pulse rounded-full bg-crimson [animation-delay:400ms]" />
-            </div>
-            <p className="font-heading text-xl font-semibold">More projects coming soon</p>
-            <p className="mt-2 max-w-md text-sm text-muted">
-              Currently building in full-stack, AI/ML and zero-knowledge. Follow along on GitHub.
-            </p>
+          <div className="flex h-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-white/15 px-6 py-7 text-center sm:flex-row sm:gap-3">
+            <span className="flex gap-1" aria-hidden="true">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-crimson" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-crimson [animation-delay:200ms]" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-crimson [animation-delay:400ms]" />
+            </span>
+            <p className="font-heading text-base font-semibold">More projects coming soon</p>
+            <p className="text-sm text-muted">· Building in full-stack, AI/ML and zero-knowledge.</p>
           </div>
         </Reveal>
       </div>
@@ -168,10 +160,10 @@ export default function FeaturedProject() {
 /** Small numbered label used for Problem / Solution / Impact. */
 function StepLabel({ n, label }: { n: string; label: string }) {
   return (
-    <h3 className="flex items-center gap-3 font-heading text-sm font-semibold uppercase tracking-[0.2em]">
+    <h4 className="flex items-center gap-2.5 font-heading text-xs font-semibold uppercase tracking-[0.2em]">
       <span className="text-crimson-bright">{n}</span>
-      <span className="h-px w-6 bg-white/20" aria-hidden="true" />
+      <span className="h-px w-5 bg-white/20" aria-hidden="true" />
       <span className="text-ink">{label}</span>
-    </h3>
+    </h4>
   );
 }
