@@ -20,7 +20,7 @@ export default function FeaturedProject() {
   const host = p.liveUrl ? new URL(p.liveUrl).host + new URL(p.liveUrl).pathname.replace(/\/$/, "") : "";
 
   return (
-    <section id="projects" aria-labelledby="projects-heading" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 md:py-28">
+    <section id="projects" aria-labelledby="projects-heading" className="mx-auto max-w-6xl px-5 py-16 sm:px-8 md:py-24">
       <SectionHeading
         id="projects-heading"
         eyebrow="Projects"
