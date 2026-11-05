@@ -5,7 +5,7 @@
  *
  *  - A faceted "crystal" (icosahedron) in deep forest green with a crimson
  *    wireframe shell and a glowing crimson core.
- *  - An orbiting ring + a soft particle field for depth.
+ *  - An orbiting ring, plus a star field that fills the whole hero section.
  *  - Everything tilts toward the mouse (pointer is tracked page-wide).
  *
  * Performance knobs (passed from Hero):
@@ -13,7 +13,7 @@
  *  - `paused` → stops the render loop (off-screen or reduced motion).
  */
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, PointMaterial, Points } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -100,34 +100,71 @@ function Crystal({ animate }: { animate: boolean }) {
   );
 }
 
-/* ---------- Particle field ---------- */
-function Particles({ count, animate }: { count: number; animate: boolean }) {
-  const ref = useRef<THREE.Points>(null);
+/* ---------- Layout: place the crystal over the HTML "anchor" box ---------- */
 
-  // Random points on a thick spherical shell around the crystal
+/** Pixel box (relative to the canvas) that the crystal should be centred in. */
+export type Anchor = { x: number; y: number; w: number; h: number };
+
+const CRYSTAL_RADIUS = 2.05; // outermost extent of the crystal (the orbit ring), in world units
+
+function CrystalLayout({ anchor, children }: { anchor: Anchor | null; children: React.ReactNode }) {
+  const { size, camera } = useThree();
+  const cam = camera as THREE.PerspectiveCamera;
+
+  // World units per CSS pixel on the z = 0 plane
+  const worldHeight = 2 * cam.position.z * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+  const wpp = worldHeight / size.height;
+
+  const a = anchor ?? { x: size.width / 2 - 200, y: size.height / 2 - 200, w: 400, h: 400 };
+  const cx = a.x + a.w / 2;
+  const cy = a.y + a.h / 2;
+  const x = (cx - size.width / 2) * wpp;
+  const y = -(cy - size.height / 2) * wpp;
+  // Ring radius ≈ 36% of the anchor's shorter side
+  const scale = (0.36 * Math.min(a.w, a.h) * wpp) / CRYSTAL_RADIUS;
+
+  return (
+    <group position={[x, y, 0]} scale={scale}>
+      {children}
+    </group>
+  );
+}
+
+/* ---------- Star field covering the whole hero ---------- */
+function Stars({ count, animate }: { count: number; animate: boolean }) {
+  const ref = useRef<THREE.Points>(null);
+  const { size, camera } = useThree();
+  const cam = camera as THREE.PerspectiveCamera;
+  const aspect = Math.round((size.width / size.height) * 10) / 10; // rounded → only rebuild on real resizes
+
+  // Fill the camera's view at every depth (plus a margin for parallax)
   const positions = useMemo(() => {
+    const tan = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const r = 2.8 + Math.random() * 3.2;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
+      const z = -12 + Math.random() * 13; // -12 … 1
+      const halfH = (cam.position.z - z) * tan * 1.15;
+      const halfW = halfH * aspect;
+      arr[i * 3] = (Math.random() * 2 - 1) * halfW;
+      arr[i * 3 + 1] = (Math.random() * 2 - 1) * halfH;
+      arr[i * 3 + 2] = z;
     }
     return arr;
-  }, [count]);
+  }, [count, aspect, cam.fov, cam.position.z]);
 
   useFrame((state, delta) => {
     if (!ref.current) return;
-    if (animate) ref.current.rotation.y -= delta * 0.03;
-    // Gentle parallax opposite to the crystal
-    ref.current.rotation.x = THREE.MathUtils.damp(ref.current.rotation.x, THREE.MathUtils.clamp(state.pointer.y, -1, 1) * 0.15, 1.5, delta);
+    const px = THREE.MathUtils.clamp(state.pointer.x, -1, 1);
+    const py = THREE.MathUtils.clamp(state.pointer.y, -1, 1);
+    // Gentle parallax opposite to the pointer + a slow sway
+    ref.current.position.x = THREE.MathUtils.damp(ref.current.position.x, -px * 0.35, 1.5, delta);
+    ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, -py * 0.25, 1.5, delta);
+    if (animate) ref.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.05;
   });
 
   return (
     <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color={COLORS.ink} size={0.022} sizeAttenuation depthWrite={false} opacity={0.6} />
+      <PointMaterial transparent color={COLORS.ink} size={0.045} sizeAttenuation depthWrite={false} opacity={0.7} />
     </Points>
   );
 }
@@ -137,10 +174,12 @@ export default function HeroScene({
   lite = false,
   paused = false,
   reducedMotion = false,
+  anchor = null,
 }: {
   lite?: boolean;
   paused?: boolean;
   reducedMotion?: boolean;
+  anchor?: Anchor | null;
 }) {
   // Reduced motion → render a still frame on demand; off-screen → stop entirely.
   const frameloop = paused ? "never" : reducedMotion ? "demand" : "always";
@@ -157,12 +196,15 @@ export default function HeroScene({
       aria-hidden="true"
     >
       <ambientLight intensity={0.35} />
-      <directionalLight position={[4, 5, 3]} intensity={1.1} color={COLORS.ink} />
-      <pointLight position={[3, 1, 3]} intensity={18} color={COLORS.crimson} />
-      <pointLight position={[-4, -2, 2]} intensity={10} color="#3fa37a" />
+      <Stars count={lite ? 600 : 2200} animate={!reducedMotion} />
 
-      <Crystal animate={!reducedMotion} />
-      <Particles count={lite ? 350 : 1400} animate={!reducedMotion} />
+      {/* Lights live inside the layout group so they follow the crystal */}
+      <CrystalLayout anchor={anchor}>
+        <directionalLight position={[4, 5, 3]} intensity={1.1} color={COLORS.ink} />
+        <pointLight position={[3, 1, 3]} intensity={18} color={COLORS.crimson} />
+        <pointLight position={[-4, -2, 2]} intensity={10} color="#3fa37a" />
+        <Crystal animate={!reducedMotion} />
+      </CrystalLayout>
     </Canvas>
   );
 }
