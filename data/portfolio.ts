@@ -22,6 +22,9 @@ export type Project = {
   impact: { stat: number; statSuffix?: string; statLabel: string; text: string };
   learned: string[];
   tech: string[];
+  /** Screenshot in /public (e.g. "/projects/certiproof.jpg"). Shown in a browser-style frame. */
+  image?: string;
+  imageAlt?: string;
   liveUrl?: string;
   githubUrl?: string;
 };
@@ -115,6 +118,8 @@ export const featuredProject: Project = {
     "Switching to the 1AM wallet when Lace couldn't pay fees on Preprod",
   ],
   tech: ["Compact", "Midnight Blockchain", "Zero-Knowledge Proofs", "1AM Wallet"],
+  image: "/projects/certiproof.jpg",
+  imageAlt: "CertiProof app: ZK Certificate Verifier home screen showing 91 certificates verified on Midnight Preprod",
   liveUrl: "https://onsayanmanna2006-dot.github.io/CertiProof/",
   githubUrl: "https://github.com/onsayanmanna2006-dot/CertiProof",
 };
