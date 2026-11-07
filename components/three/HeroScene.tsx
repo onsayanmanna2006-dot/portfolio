@@ -14,7 +14,7 @@
  */
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
+import { Environment, Float, Lightformer } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
@@ -28,12 +28,23 @@ const COLORS = {
 
 /* ---------- The crystal ---------- */
 function Crystal({ animate }: { animate: boolean }) {
+  const scrollRig = useRef<THREE.Group>(null);
   const group = useRef<THREE.Group>(null);
   const core = useRef<THREE.Mesh>(null);
   const ring = useRef<THREE.Mesh>(null);
 
   useFrame((state, delta) => {
-    if (!group.current) return;
+    if (!group.current || !scrollRig.current) return;
+
+    // Scroll: 0 at the top of the page, 1 after scrolling one screen height.
+    // As you scroll, the crystal turns, rises and shrinks away (smoothly damped).
+    const p = animate ? THREE.MathUtils.clamp(window.scrollY / window.innerHeight, 0, 1) : 0;
+    const rig = scrollRig.current;
+    rig.rotation.y = THREE.MathUtils.damp(rig.rotation.y, p * Math.PI * 0.9, 4, delta);
+    rig.rotation.x = THREE.MathUtils.damp(rig.rotation.x, p * 0.5, 4, delta);
+    rig.position.y = THREE.MathUtils.damp(rig.position.y, p * 1.2, 4, delta);
+    rig.scale.setScalar(THREE.MathUtils.damp(rig.scale.x, 1 - p * 0.35, 4, delta));
+
     // The pointer is tracked page-wide, so it goes far outside -1..1 when the mouse
     // is away from the canvas. Clamp it so the crystal never tilts out of frame.
     const x = THREE.MathUtils.clamp(state.pointer.x, -1, 1);
@@ -55,6 +66,7 @@ function Crystal({ animate }: { animate: boolean }) {
   });
 
   return (
+    <group ref={scrollRig}>
     <Float speed={animate ? 1.6 : 0} rotationIntensity={0.25} floatIntensity={0.8}>
       <group ref={group}>
         {/* Solid faceted crystal */}
@@ -63,13 +75,18 @@ function Crystal({ animate }: { animate: boolean }) {
           <meshPhysicalMaterial
             color={COLORS.forest}
             emissive={COLORS.forestDeep}
-            metalness={0.2}
-            roughness={0.18}
+            metalness={0.15}
+            roughness={0.08}
             clearcoat={1}
-            clearcoatRoughness={0.1}
+            clearcoatRoughness={0.05}
+            iridescence={0.35}
+            iridescenceIOR={1.4}
+            sheen={0.4}
+            sheenColor={COLORS.crimsonBright}
+            envMapIntensity={1.3}
             flatShading
             transparent
-            opacity={0.92}
+            opacity={0.94}
           />
         </mesh>
 
@@ -97,6 +114,7 @@ function Crystal({ animate }: { animate: boolean }) {
         </mesh>
       </group>
     </Float>
+    </group>
   );
 }
 
@@ -285,6 +303,15 @@ export default function HeroScene({
       <Stars count={lite ? 900 : 2600} animate={!reducedMotion} />
 
       {/* Lights live inside the layout group so they follow the crystal */}
+      {/* Soft "studio" reflections, generated in-browser (no image download).
+          Rendered once, so it costs nothing per frame. */}
+      <Environment resolution={lite ? 64 : 128} frames={1}>
+        <Lightformer form="rect" intensity={2.2} color={COLORS.ink} position={[0, 4, -2]} scale={[8, 2, 1]} rotation-x={Math.PI / 2} />
+        <Lightformer form="rect" intensity={3} color={COLORS.crimsonBright} position={[5, 0, 1]} scale={[2, 6, 1]} rotation-y={-Math.PI / 2} />
+        <Lightformer form="rect" intensity={1.6} color="#3fa37a" position={[-5, -1, 1]} scale={[2, 6, 1]} rotation-y={Math.PI / 2} />
+        <Lightformer form="ring" intensity={1.2} color={COLORS.ink} position={[0, 0, 6]} scale={3} />
+      </Environment>
+
       <CrystalLayout anchor={anchor}>
         <directionalLight position={[4, 5, 3]} intensity={1.1} color={COLORS.ink} />
         <pointLight position={[3, 1, 3]} intensity={18} color={COLORS.crimson} />

@@ -3,6 +3,7 @@ import { withBasePath } from "@/lib/utils";
 import Reveal from "./ui/Reveal";
 import SectionHeading from "./ui/SectionHeading";
 import Counter from "./ui/Counter";
+import Tilt from "./ui/Tilt";
 import { ArrowUpRightIcon, CheckIcon, ChevronDownIcon, GithubIcon } from "./ui/Icons";
 
 /**
@@ -40,34 +41,36 @@ export default function FeaturedProject() {
             {p.image && (
               <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-forest-light/60 via-forest to-charcoal p-4 sm:p-5 md:border-b-0 md:border-r">
                 <div aria-hidden="true" className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-crimson/20 blur-[80px]" />
-                <a
-                  href={p.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Open the ${p.name} live demo (opens in a new tab)`}
-                  className="relative block overflow-hidden rounded-lg border border-white/10 bg-charcoal shadow-xl shadow-black/50"
-                >
-                  {/* Browser chrome */}
-                  <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/[0.03] px-3 py-2">
-                    <span className="flex gap-1" aria-hidden="true">
-                      <span className="h-2 w-2 rounded-full bg-white/15" />
-                      <span className="h-2 w-2 rounded-full bg-white/15" />
-                      <span className="h-2 w-2 rounded-full bg-white/15" />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate rounded bg-white/5 px-2.5 py-0.5 text-center font-mono text-[10px] text-muted">
-                      {host}
-                    </span>
-                  </div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={withBasePath(p.image)}
-                    alt={p.imageAlt ?? `${p.name} screenshot`}
-                    loading="lazy"
-                    width={1440}
-                    height={778}
-                    className="block aspect-[16/9] w-full object-cover object-top transition-transform duration-700 ease-out group-hover/card:scale-[1.03]"
-                  />
-                </a>
+                <Tilt className="relative">
+                  <a
+                    href={p.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open the ${p.name} live demo (opens in a new tab)`}
+                    className="relative block overflow-hidden rounded-lg border border-white/10 bg-charcoal shadow-xl shadow-black/50"
+                  >
+                    {/* Browser chrome */}
+                    <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/[0.03] px-3 py-2">
+                      <span className="flex gap-1" aria-hidden="true">
+                        <span className="h-2 w-2 rounded-full bg-white/15" />
+                        <span className="h-2 w-2 rounded-full bg-white/15" />
+                        <span className="h-2 w-2 rounded-full bg-white/15" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate rounded bg-white/5 px-2.5 py-0.5 text-center font-mono text-[10px] text-muted">
+                        {host}
+                      </span>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={withBasePath(p.image)}
+                      alt={p.imageAlt ?? `${p.name} screenshot`}
+                      loading="lazy"
+                      width={1440}
+                      height={778}
+                      className="block aspect-[16/9] w-full object-cover object-top transition-transform duration-700 ease-out group-hover/card:scale-[1.03]"
+                    />
+                  </a>
+                </Tilt>
               </div>
             )}
 
