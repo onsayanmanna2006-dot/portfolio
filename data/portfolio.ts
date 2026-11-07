@@ -14,6 +14,14 @@ export type SkillGroup = {
   items: string[];
 };
 
+/** Optional logo (path inside /public) shown next to a skill chip. */
+export const skillLogos: Record<string, string> = {
+  Python: "/icons/skills/python.svg",
+  Java: "/icons/skills/java.svg",
+  C: "/icons/skills/c.svg",
+  HTML: "/icons/skills/html5.svg",
+};
+
 export type Project = {
   name: string;
   tagline: string;
@@ -82,7 +90,7 @@ export const profile = {
 /* ---------- Skills ---------- */
 
 export const skills: SkillGroup[] = [
-  { title: "Languages", icon: "code", items: ["Python", "Java", "C"] },
+  { title: "Languages", icon: "code", items: ["Python", "Java", "C", "HTML"] },
   { title: "Focus Areas", icon: "layers", items: ["Full-Stack Development", "AI/ML"] },
   {
     title: "Blockchain",

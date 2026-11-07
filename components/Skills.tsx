@@ -1,4 +1,4 @@
-import { skills, type SkillGroup } from "@/data/portfolio";
+import { skillLogos, skills, type SkillGroup } from "@/data/portfolio";
 import Reveal from "./ui/Reveal";
 import SectionHeading from "./ui/SectionHeading";
 import { BlocksIcon, CodeIcon, LayersIcon } from "./ui/Icons";
@@ -38,7 +38,11 @@ export default function Skills() {
                     <h3 className="font-heading text-lg font-semibold">{group.title}</h3>
                     <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={`${group.title} skills`}>
                       {group.items.map((skill) => (
-                        <li key={skill} className="chip">
+                        <li key={skill} className="chip gap-1.5">
+                          {skillLogos[skill] && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={skillLogos[skill]} alt="" aria-hidden="true" width={14} height={14} className="h-3.5 w-3.5" />
+                          )}
                           {skill}
                         </li>
                       ))}
