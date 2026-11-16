@@ -20,6 +20,27 @@ export default function Contact() {
     }
   };
 
+  // On phones a mailto: link silently does nothing when no mail app is set up
+  // (or inside in-app browsers like Instagram/LinkedIn). If the page is still
+  // visible shortly after the tap, assume nothing opened and offer a fallback.
+  const [mailFallback, setMailFallback] = useState(false);
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}`;
+
+  const handleMailClick = () => {
+    let left = false;
+    const markLeft = () => { left = true; };
+    window.addEventListener("blur", markLeft, { once: true });
+    document.addEventListener("visibilitychange", markLeft, { once: true });
+    setTimeout(() => {
+      window.removeEventListener("blur", markLeft);
+      document.removeEventListener("visibilitychange", markLeft);
+      if (!left && document.visibilityState === "visible") {
+        setMailFallback(true);
+        navigator.clipboard?.writeText(contact.email).catch(() => {});
+      }
+    }, 1200);
+  };
+
   const socials = [
     { label: "GitHub", handle: contact.github.replace(/^https?:\/\/(www\.)?/, ""), href: contact.github, Icon: GithubIcon },
     { label: "LinkedIn", handle: contact.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\//, "").replace(/\/$/, ""), href: contact.linkedin, Icon: LinkedinIcon },
@@ -45,13 +66,14 @@ export default function Contact() {
               </p>
               <a
                 href={`mailto:${contact.email}`}
+                onClick={handleMailClick}
                 className="mt-2 block font-heading text-lg font-semibold transition-colors [overflow-wrap:anywhere] hover:text-crimson-bright min-[400px]:text-xl sm:text-2xl"
               >
                 {contact.email}
               </a>
             </div>
             <div className="relative flex flex-wrap gap-2.5">
-              <a href={`mailto:${contact.email}`} className="btn-primary px-5 py-2.5">
+              <a href={`mailto:${contact.email}`} onClick={handleMailClick} className="btn-primary px-5 py-2.5">
                 Send an email <ArrowUpRightIcon />
               </a>
               <button type="button" onClick={copyEmail} className="btn-outline px-5 py-2.5" aria-live="polite">
@@ -64,6 +86,14 @@ export default function Contact() {
                 </a>
               )}
             </div>
+            {mailFallback && (
+              <p role="status" className="relative text-sm text-muted">
+                No mail app opened — the address is copied to your clipboard.{" "}
+                <a href={gmailUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-crimson-bright underline underline-offset-2">
+                  Open in Gmail
+                </a>
+              </p>
+            )}
           </div>
         </Reveal>
 
